@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="css/style.css">
+	<title>Horror</title>
+</head>
+<body>
+	<div id="app"
+	     v-on:click="!isMobile() ?lockCamera($event): ()=>{} "
+	     
+
+	     v-on:touchstart="touchStart"
+	     v-on:touchmove="touchMove"
+	     v-on:touchend="touchEnd"
+	     v-on:touchcancel="touchEnd"
+
+
+	     v-on:keydown.w="moveForward(true)"
+	     v-on:keyup.w="moveForward(false)"
+	     v-on:keydown.up="moveForward(true)"
+	     v-on:keyup.up="moveForward(false)"
+
+	     v-on:keydown.s="moveBackward(true)"
+	     v-on:keyup.s="moveBackward(false)"
+	     v-on:keydown.down="moveBackward(true)"
+	     v-on:keyup.down="moveBackward(false)"
+
+	     v-on:keydown.a="moveLeft(true)"
+	     v-on:keyup.a="moveLeft(false)"
+	     v-on:keydown.left="moveLeft(true)"
+	     v-on:keyup.left="moveLeft(true)"
+
+	     v-on:keydown.d="moveRight(true)"
+	     v-on:keyup.d="moveRight(false)"
+	     v-on:keydown.right="moveRight(true)"
+	     v-on:keyup.right="moveRight(false)"
+	     tabindex=-1>
+		<div id="nav" 
+			v-if="isMobile()" 
+			v-on:click="locked=false"
+			v-show="locked"><b>Instrucciones</b></div>
+		<div id="lockscreen" 
+			v-show="!locked" 
+			v-on:click="chat_focused = false"
+			v-bind:style="{'z-index': chat_focused ? 0 : 1}"> 
+			<h2>Instrucciones</h2>
+			<ul v-show="!isMobile()">
+				<li><b>W / ↑</b>avanzar</li>
+				<li><b>A / ← </b>mover izquierda</li>
+				<li><b>S / ↓</b>retroceder</li>
+				<li><b>D / →</b>mover derecha</li>
+				<li><b>[Enter]</b> para interactuar</li>
+				<li><b>[Escape]</b> para ver este menú</li>
+				<li><b>Click donde sea para continuar</b></li>
+			</ul>
+			<ul v-show="isMobile()">
+				<li><b>Touch Y</b> para avanzar / retroceder</li>
+				<li><b>Touch X</b> para rotar</li>
+				<li 
+					v-show="isMobile()"
+					v-on:click="locked=true"
+					><b>Click aqui para continuar</b></li>
+			</ul>
+			<img src="img/demo.jpeg" id="flyer" alt="">
+		</div>
+
+		<div id="chat" 
+		     v-bind:class="{chat_hidden: !chat_vis}" 
+		     v-bind:style="{'z-index': chat_focused ? 1 : 0 }"
+		     v-on:click="chat_focused = true"
+		     >
+			<div id="chat_header" v-on:click="toggle_chat">
+				<h3>Chat <b>({{Object.keys(users).length+1}})</b> en línea [ {{ chat_vis ? "_" : "+"}} ]</h3>
+			</div>
+			<div id="messages" v-show="chat_vis">
+				<div class="message" v-for="msg in messages">
+					<span class="date"> {{ ('0' + msg.date.getHours()).substr(-2)  }}:{{ ( '0' + msg.date.getMinutes()).substr(-2) }} </span>
+					<b>{{msg.peer}}</b><span>{{msg.text}}<span>
+				</div>
+			</div>
+			<div id="chat_footer">	
+				<div id="alias_form">
+					<span>alias:</span>
+					<input type="text" id="input_alias" v-model.lazy="alias">
+				</div>
+				<textarea id="input_msg" name="" v-show="chat_vis" v-model="msg"></textarea>
+				<input type="submit" value="mandar" v-show="chat_vis" v-on:click="send_msg">
+			</div>
+		</div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+	<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+	<script src="js/script.js" type="module"></script>
+</body>
+</html>
