@@ -25,7 +25,7 @@ B recibe movimientos
 
 
 function discover(){
-        return fetch(`http://192.168.0.100:9000/piranhalab/peerjs/peers`)
+        return fetch(`http://192.168.0.100:9000/peerjs/horror/peerjs/peers`)
         .then(response => response.json())
 	.then(data => {
 		data.forEach((peer)=> {
@@ -106,6 +106,9 @@ const app = new Vue({
 				const avatar = this.three.scene.getObjectByName(`avatar`)
 				if(avatar){
 					this.$set(avatar.userData, 'alias', value)
+					avatar.userData.create_nickname.then(function(create){
+						create()
+					})
 				}	
 			}
 		},
@@ -139,7 +142,7 @@ const app = new Vue({
 		peer:  new Peer({
 			host:'/',
 			port:9000,
-			path:'/piranhalab'
+			path:'/peerjs/horror'
 		}),
 		users: {},
 		locked: false,
@@ -182,6 +185,9 @@ const app = new Vue({
 				const avatar = app.three.scene.getObjectByName(`avatar-${peer}`)
 				if(avatar){
 					avatar.userData.alias = alias
+					avatar.userData.create_nickname.then(function(create){
+						create()
+					})
 				}
 			},
 			function(peer, msg){
@@ -232,24 +238,40 @@ const app = new Vue({
 
 		},
 		moveForward: function(moving){
-			if(document.activeElement == this.$el){
+			if(this.isMobile()){
 				this.three.moving.forward = moving
+			}else{
+				if(this.locked && document.activeElement == this.$el){
+					this.three.moving.forward = moving
+				}
 			}
 		},
 		moveBackward: function(moving){
-			if(document.activeElement == this.$el){
+			if(this.isMobile()){
 				this.three.moving.backward = moving
+			}else{
+				if(this.locked && document.activeElement == this.$el){
+					this.three.moving.backward = moving
+				}
 			}
 		},
 
 		moveRight: function(moving){
-			if(document.activeElement == this.$el){
+			if(this.isMobile()){
 				this.three.moving.right = moving
+			}else{
+				if(this.locked && document.activeElement == this.$el){
+					this.three.moving.right = moving
+				}
 			}
 		},
 		moveLeft: function(moving){
-			if(document.activeElement == this.$el){
+			if(this.isMobile()){
 				this.three.moving.left = moving
+			}else{
+				if(this.locked && document.activeElement == this.$el){
+					this.three.moving.left = moving
+				}
 			}
 		},
 
@@ -270,6 +292,9 @@ const app = new Vue({
 
 				addAvatar(this.three.scene, `avatar-${peer}`).then(function(avatar){
 					avatar.userData.alias = `avatar-${peer}`
+					avatar.userData.create_nickname.then(function(create){
+						create()
+					})
 					if(conn && Array.isArray(conn.metadata)){
 						if(! isNaN(conn.metadata[0])) avatar.position.x = conn.metadata[0]
 						if(! isNaN(conn.metadata[1])) avatar.position.z = conn.metadata[1]

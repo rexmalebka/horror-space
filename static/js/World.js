@@ -2,6 +2,8 @@ import * as THREE from 'https://cdn.skypack.dev/three@latest'
 import {GLTFLoader} from "https://cdn.skypack.dev/three@latest/examples/jsm/loaders/GLTFLoader.js"
 import {DRACOLoader} from "https://cdn.skypack.dev/three@latest/examples/jsm/loaders/DRACOLoader.js"
 import {Water} from "https://cdn.skypack.dev/three@latest/examples/jsm/objects/Water2.js"
+import {FontLoader} from "https://cdn.skypack.dev/three@latest/examples/jsm/loaders/FontLoader.js"
+import { TextGeometry  } from 'https://cdn.skypack.dev/three@latest/examples/jsm/geometries/TextGeometry.js'
 
 
 export function dance(avatar){
@@ -77,10 +79,51 @@ export function addAvatar(scene, name){
 		function copymodel(){
 			const avatar = scene.getObjectByName("avatar_model")
 			const new_avatar = cloneGltf({scene:avatar, animations:[]})
+			const loader = new FontLoader(); 
+
+
+			new_avatar.scene.userData.create_nickname = new Promise(function(res, rej){
+				loader.load('https://unpkg.com/three@0.77.0/examples/fonts/helvetiker_regular.typeface.json', function(font){
+					function create(){
+						const alias = new_avatar.scene.userData.alias
+						const geom = new TextGeometry(alias, {
+							font: font,
+							size:0.4,
+							height:0.1
+						})
+
+						const mat = new THREE.MeshBasicMaterial({
+							side: THREE.DoubleSide,
+							color:0xff00ff
+						})
+						const text = new THREE.Mesh(geom, mat)
+						const box = new THREE.Box3().setFromObject( text );
+						
+						text.position.x = - box.getSize(new THREE.Vector3()).x / 2 
+						text.position.y = 7.5
+
+						console.log( box ,"size");
+
+						const alias_mesh = new_avatar.scene.getObjectByName('alias')
+						
+						if(alias_mesh){
+							alias_mesh.geometry.dispose()
+							alias_mesh.material.dispose()
+							new_avatar.scene.remove(alias_mesh)
+						}
+
+						text.name = "alias"
+						new_avatar.scene.add(text)
+					}
+					res(create)
+				})
+			})
+			
 			new_avatar.scene.name = name
 			new_avatar.scene.visible = true
 			scene.add(new_avatar.scene)
 			new_avatar.scene.scale.setScalar(0.3)
+
 			return new_avatar.scene
 		}
 
