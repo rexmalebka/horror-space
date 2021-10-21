@@ -19,3 +19,5 @@ por hacer:
 ## Como correrlo
 
 `node src/server.js` 
+
+abrir 127.0.0.1:9000 en el navegador
