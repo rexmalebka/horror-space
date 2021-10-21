@@ -5,23 +5,6 @@ import {initWorld, addAvatar} from "./World.js"
 window.THREE = THREE
 const initial_pos = {x: 23.7173, y: 2, z: 31.7031}
 const initial_rot = {  y:0 }
-/*
- *
-A se conecta
-B se conecta
-A se mueve
-B recibe movimientos
-B se mueve, A no recibe movimientos
-
-
-A se conecta
-B se conecta
-B se mueve
-A NO recibe movimientos
-A se mueve
-B recibe movimientos 
- * */
-
 
 
 function discover(){

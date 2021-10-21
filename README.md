@@ -15,3 +15,7 @@ por hacer:
 - agregar movimientos a las figuras
 - reducir tamaño de código con webpack + typescript si es posible
 - reducir tamaños compilando a comprimidos y exponiendo con nginx 
+
+## Como correrlo
+
+`node src/server.js` 

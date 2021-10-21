@@ -397,5 +397,29 @@ export function initWorld(scene){
 	addMaquinas(scene)
 	addEyes(scene)
 	addTecho(scene)
+	Prueba(scene)
 }
 
+//////
+
+function Prueba (scene){
+	const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+	const material = new THREE.MeshBasicMaterial( {
+		color: 0x00ff00, 
+		map: new THREE.TextureLoader().load('./textures/floor.jpg'),
+		side:THREE.DoubleSide,
+	} );
+	material.map.wrapT = THREE.RepeatWrapping
+	material.map.wrapS = THREE.RepeatWrapping
+	material.map.repeat.y = 10
+	material.map.repeat.y = 10
+	let i = 0
+	setInterval(function (){
+		material.map.rotation = i
+		i = i + 0.1
+	},100)
+	const cube = new THREE.Mesh( geometry, material );
+	console.log(cube, "Este es el cubo")
+	cube.position.y = 2
+	scene.add( cube );
+}
