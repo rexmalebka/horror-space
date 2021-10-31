@@ -1,0 +1,46 @@
+- name: Make sure we have a wheel group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow wheel group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: create piranha username
+  ansible.builtin.user:
+    name: piranha
+    shell: /bin/bash
+    groups: wheel
+    append: yes
+    state: present
+
+- name: create ssh banner
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '^Banner '
+    line: 'Banner /etc/ssh/banner'
+
+- name: create banner file
+  ansible.builtin.template:
+    src: files/banner
+    dest: /etc/ssh/banner
+
+- name: restart ssh service
+  ansible.builtin.systemd:
+    name: ssh
+    state: restarted
+    daemon_reload: no
+
+
+- name: add authorized key for piranha user
+  ansible.posix.authorized_key:
+    user: piranha
+    key: "{{ lookup('env', 'PUBKEY') }}"
+
+

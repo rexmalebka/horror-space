@@ -1,0 +1,101 @@
+---
+- name: list directories
+  local_action:
+    module: find
+    paths: "{{ lookup('env', 'GITHUB_WORKSPACE' ) }}"
+    recurse: no
+    file_type: directory
+    excludes: "piranhalab.cc,.ansible"
+  register: directories
+
+- name: sync files
+  ansible.posix.synchronize:
+    src: "{{ item.path }}"
+    dest: /var/www/html/
+  loop: "{{ directories.files }}"
+
+#- name: get domains
+#  community.digitalocean.digital_ocean_domain_info:
+#    oauth_token: "{{ lookup('env', 'DO_TOKEN' ) }}"
+#  register: subdomains
+
+- name: sync piranhalab root directory
+  ansible.posix.synchronize:
+    src: "{{ lookup('env', 'GITHUB_WORKSPACE' ) }}/piranhalab.cc"
+    dest: /var/www/html/
+
+- name: create nginx configuration for piranhalab.cc
+  ansible.builtin.template:
+    src: files/piranhalab.cc
+    dest: "/etc/nginx/sites-available/piranhalab.cc"
+
+- name: Create symbolic link for piranhalab.cc
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/piranhalab.cc"
+    dest: "/etc/nginx/sites-enabled/piranhalab.cc"
+    state: link
+
+#- name: "Create record for *.piranhalab.cc"
+#  community.digitalocean.digital_ocean_domain_record:
+#    oauth_token: "{{ lookup('env', 'DO_TOKEN' ) }}"
+#    state: present
+#    domain: "*.piranhalab.cc"
+#    type: A
+#    force_update: yes
+#    name: "@"
+#    data: "{{ lookup('env', 'IP') }}"
+
+# - name: Create record for www.piranhalab.cc
+#  community.digitalocean.digital_ocean_domain_record:
+#    oauth_token: "{{ lookup('env', 'DO_TOKEN' ) }}"
+#    state: present
+#    domain: piranhalab.cc
+#    type: CNAME
+#    force_update: yes
+#    name: "www"
+#    data: "@"
+
+#- name: Create record for the new directories
+#  community.digitalocean.digital_ocean_domain_record:
+#    oauth_token: "{{ lookup('env', 'DO_TOKEN' ) }}"
+#    state: present
+#    domain: piranhalab.cc
+#    type: A
+#    force_update: yes
+#    name: "{{ item.path | basename }}"
+#    data: "{{ lookup('env', 'IP') }}"
+#  with_items: "{{ directories.files }}"
+
+#- name: Create CNAME records for redirections
+#  community.digitalocean.digital_ocean_domain_record:
+#    oauth_token: "{{ lookup('env', 'DO_TOKEN' ) }}"
+#    state: present
+#    domain: piranhalab.cc
+#    type: CNAME
+#    force_update: yes
+#    name: "www.{{ item.path | basename }}"
+#    data: "@"
+#  with_items: "{{ directories.files }}"
+
+- name: create nginx configuration files
+  ansible.builtin.template:
+    src: files/site.nginx
+    dest: "/etc/nginx/sites-available/{{ item.path | basename }}"
+  with_items: "{{ directories.files }}"
+
+- name: fail if nginx tests failes
+  shell: "nginx -t"
+
+- name: Create a symbolic link
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ item.path | basename }}"
+    dest: "/etc/nginx/sites-enabled/{{ item.path | basename }}"
+    state: link
+  with_items: "{{ directories.files }}"
+
+
+- name: restart nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted
+    daemon_reload: yes

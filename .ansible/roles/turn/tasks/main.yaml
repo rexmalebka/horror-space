@@ -1,0 +1,95 @@
+---
+- name: check if coturn is installed
+  stat:
+    path:  "/usr/bin/turnserver"
+  register: coturn_exists
+
+- name: upgrade & update package
+  become: true
+  apt:
+    upgrade: "yes"
+    update_cache: "yes"
+  when: not coturn_exists.stat.exists 
+
+- name: install coturn 
+  apt:
+    name: coturn 
+    state: present
+  when: not coturn_exists.stat.exists 
+
+- name: stop service
+  ansible.builtin.systemd:
+    name: coturn
+    state: stopped
+  when: not coturn_exists.stat.exists 
+      
+- name: replace flag TURNSERVER_ENABLED 
+  ansible.builtin.replace:
+    path: /etc/default/coturn
+    regexp: '#TURNSERVER_ENABLED.*$'
+    replace: 'TURNSERVER_ENABLED=1'
+  when: not coturn_exists.stat.exists 
+
+- name: create configuration 
+  ansible.builtin.template:
+    src: files/turnserver.conf
+    dest: "/etc/turnserver.conf"
+
+- name: "Create record for turn.piranhalab.cc"
+  community.digitalocean.digital_ocean_domain_record:
+    oauth_token: "{{ lookup('env', 'DO_TOKEN' ) }}"
+    state: present
+    domain: piranhalab.cc
+    type: A
+    name: "turn"
+    force_update: yes
+    data: "{{ lookup('env', 'IP') }}"
+
+- name: "Create record for stun.piranhalab.cc"
+  community.digitalocean.digital_ocean_domain_record:
+    oauth_token: "{{ lookup('env', 'DO_TOKEN' ) }}"
+    state: present
+    domain: piranhalab.cc
+    type: A
+    name: "stun"
+    force_update: yes
+    data: "{{ lookup('env', 'IP') }}"
+
+- name: Allow all access to turn port tcp
+  community.general.ufw:
+    rule: allow
+    port: '3478'
+    proto: tcp
+  when: not coturn_exists.stat.exists 
+
+- name: Allow all access to turn port udp 
+  community.general.ufw:
+    rule: allow
+    port: '3478'
+    proto: udp
+
+- name: Allow all access to stun port0
+  community.general.ufw:
+    rule: allow
+    port: '5349'
+    proto: tcp
+
+- name: Allow all access to stun port0
+  community.general.ufw:
+    rule: allow
+    port: '5349'
+    proto: udp
+
+- name: "Allow ports 10000 - 20000"
+  community.general.ufw:
+    rule: allow
+    port: '10000:20000'
+    proto: udp
+
+
+- name: restart service
+  ansible.builtin.systemd:
+    name: coturn
+    state: restarted
+
+

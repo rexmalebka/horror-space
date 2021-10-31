@@ -1,0 +1,2 @@
+[webserver]
+147.182.130.95 ansible_user=root ansible_ssh_private_key_file=~/.ssh/plab/id_rsa letsencrypt_email=rexmalebka@krutt.org domain_name=piranhalab.cc

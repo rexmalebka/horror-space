@@ -1,0 +1,10 @@
+---
+- hosts: webserver
+  roles:
+    - user
+    - docker
+    - nginx
+    - ssl
+    - static
+    - turn
+    - peerjsServer
